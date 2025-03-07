@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { supabase } from "../../supabaseClient";
 import {
     Container,
-    Typography,
     TextField,
     Button,
     Box,
@@ -30,9 +29,7 @@ function AddExercise() {
 
     return (
         <Container maxWidth="sm">
-            <Typography variant="h4" component="h2" gutterBottom>
-                Add Exercise
-            </Typography>
+           
             <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
                 <TextField label="Description" multiline rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />

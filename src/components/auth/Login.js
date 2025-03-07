@@ -34,7 +34,7 @@ function Login() {
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+      <Paper elevation={6} sx={{ p: 4 }}>
         <Typography variant="h4" component="h2" align="center" gutterBottom>
           Login
         </Typography>
@@ -48,7 +48,7 @@ function Login() {
         <Box
           component="form"
           onSubmit={handleLogin}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 1 }}
         >
           <TextField
             label="Email"

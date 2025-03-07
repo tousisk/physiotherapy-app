@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
+import { useParams, useNavigate } from "react-router-dom";
 import {
     Container,
     Typography,
@@ -8,42 +9,50 @@ import {
     Box,
 } from "@mui/material";
 
-function EditPatient({ patient, onClose, onSuccess }) {
+function EditExercise({ onClose, onSuccess }) {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [name, setName] = useState("");
-    const [medicalhistory, setMedicalHistory] = useState("");
-    const [contactinfo, setContactInfo] = useState("");
+    const [description, setDescription] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch patient data on component mount
+    // Fetch exercise data on component mount
     useEffect(() => {
-        async function fetchPatient() {
+        async function fetchExercise() {
             try {
-                // Set patient data if provided
-                if (patient) {
-                    setName(patient.name);
-                    setMedicalHistory(patient.medicalhistory || "");
-                    setContactInfo(patient.contactinfo || "");
+                const { data, error } = await supabase
+                    .from("exercises")
+                    .select("*")
+                    .eq("exerciseId", id)
+                    .single();
+
+                if (error) {
+                    console.error("Error fetching exercise:", error);
+                    setError(error);
+                } else {
+                    setName(data.name);
+                    setDescription(data.description || "");
                 }
             } catch (error) {
-                console.error("Unexpected error fetching patient:", error);
+                console.error("Unexpected error fetching exercise:", error);
                 setError(error);
             } finally {
                 setIsLoading(false);
             }
         }
-        fetchPatient();
-    }, [patient]);
+        fetchExercise();
+    }, [id]);
 
-    const handleUpdatePatient = async () => {
+    const handleUpdateExercise = async () => {
         try {
             const { error } = await supabase
-                .from("patients")
-                .update({ name, medicalhistory, contactinfo })
-                .eq("patientid", patient.patientid);
+                .from("exercises")
+                .update({ name, description })
+                .eq("exerciseId", id);
 
             if (error) {
-                console.error("Error updating patient:", error);
+                console.error("Error updating exercise:", error);
                 setError(error);
             } else {
                 if (onSuccess) {
@@ -51,10 +60,12 @@ function EditPatient({ patient, onClose, onSuccess }) {
                 }
                 if (onClose) {
                     onClose(); // Close the edit dialog
+                } else {
+                    navigate("/exercises"); // Navigate back to exercises list if not in a dialog
                 }
             }
         } catch (error) {
-            console.error("Unexpected error updating patient:", error);
+            console.error("Unexpected error updating exercise:", error);
             setError(error);
         }
     };
@@ -80,7 +91,7 @@ function EditPatient({ patient, onClose, onSuccess }) {
     return (
         <Container maxWidth="sm">
             <Typography variant="h4" component="h2" gutterBottom>
-                Edit Patient
+                Edit Exercise
             </Typography>
             <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <TextField
@@ -91,29 +102,20 @@ function EditPatient({ patient, onClose, onSuccess }) {
                     margin="normal"
                 />
                 <TextField
-                    label="Medical History"
+                    label="Description"
                     multiline
                     rows={4}
-                    value={medicalhistory}
-                    onChange={(e) => setMedicalHistory(e.target.value)}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     fullWidth
                     margin="normal"
                 />
-                <TextField
-                    label="Contact Info"
-                    multiline
-                    rows={4}
-                    value={contactinfo}
-                    onChange={(e) => setContactInfo(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                />
-                <Button variant="contained" onClick={handleUpdatePatient}>
-                    Update Patient
+                <Button variant="contained" onClick={handleUpdateExercise}>
+                    Update Exercise
                 </Button>
             </Box>
         </Container>
     );
 }
 
-export default EditPatient;
+export default EditExercise;
