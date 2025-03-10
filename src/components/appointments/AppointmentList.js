@@ -15,20 +15,34 @@ import {
 function AppointmentList() {
     const [appointments, setAppointments] = useState([]);
     const { user } = useContext(UserContext);
+    const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(null);
 
     useEffect(() => {
         async function fetchAppointments() {
-            let query = supabase.from("appointments").select("*");
+            setLoading(true);
+            try {
+                let query = supabase.from("appointments").select("*, patients(name, patientid)");
 
-            if (user) {
-                query = query.eq("physiotherapistId", user.id);
-            }
+                if (user && user.role !== "admin") {
+                    query = query.eq("physiotherapistid", user.id);
+                }
 
-            const { data, error } = await query;
-            if (error) {
+                const { data, error } = await query;
+                console.log(data); //check data being returned
+                if (error) {
+                    console.error("Error fetching appointments:", error);
+                    setFetchError(error);
+                    setAppointments([]);
+                } else {
+                    setAppointments(data || []);
+                }
+            } catch (error) {
                 console.error("Error fetching appointments:", error);
-            } else {
-                setAppointments(data);
+                setFetchError(error);
+                setAppointments([]);
+            } finally {
+                setLoading(false);
             }
         }
         fetchAppointments();
@@ -40,26 +54,32 @@ function AppointmentList() {
                 Appointments
             </Typography>
             <Paper elevation={3}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Time</TableCell>
-                            <TableCell>Patient ID</TableCell>
-                            <TableCell>Payment Status</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {appointments.map((appointment) => (
-                            <TableRow key={appointment.appointmentId}>
-                                <TableCell>{appointment.date}</TableCell>
-                                <TableCell>{appointment.time}</TableCell>
-                                <TableCell>{appointment.patientId}</TableCell>
-                                <TableCell>{appointment.paymentStatus}</TableCell>
+                {loading ? (
+                    <div>Loading...</div>
+                ) : fetchError ? (
+                    <div>{fetchError.message}</div>
+                ) : (
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Time</TableCell>
+                                <TableCell>Patient ID</TableCell>
+                                <TableCell>Physiotherapist</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {Array.isArray(appointments) && appointments.map((appointment) => (
+                                <TableRow key={appointment.appointmentid}>
+                                    <TableCell>{appointment.date}</TableCell>
+                                    <TableCell>{appointment.time}</TableCell>
+                                    <TableCell>{appointment.patientid}</TableCell>
+                                    <TableCell>{appointment.physiotherapistid}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </Paper>
         </Container>
     );

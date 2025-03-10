@@ -20,10 +20,9 @@ function PatientList() {
         async function fetchPatients() {
             let query = supabase.from("patients").select("*");
 
-            if (user && user.user_metadata.role !== "admin") {
+        
                 query = query.eq("physiotherapistid", user.id);
-            }
-
+            
             const { data, error } = await query;
             if (error) {
                 console.error("Error fetching patients:", error);
@@ -47,6 +46,7 @@ function PatientList() {
                             <TableCell>Name</TableCell>
                             <TableCell>Medical History</TableCell>
                             <TableCell>Contact Info</TableCell>
+                            <TableCell>Physiotherapist</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -56,6 +56,7 @@ function PatientList() {
                                 <TableCell>{patient.name}</TableCell>
                                 <TableCell>{patient.medicalhistory}</TableCell>
                                 <TableCell>{patient.contactinfo}</TableCell>
+                                <TableCell>{patient.physiotherapistid}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
